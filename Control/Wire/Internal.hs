@@ -10,6 +10,7 @@
 module Control.Wire.Internal
     ( -- * Wires
       Wire(..),
+      delayW,
 
       -- * Events
       Event(..),
@@ -181,6 +182,15 @@ instance (Functor m) => Strong (Wire m) where
         Wire $ \(x, y') -> do
             (y, w) <- stepWire w' y'
             pure ((x, y), second' w)
+
+
+-- | Delay the result of the given wire by one frame.
+
+delayW :: (Functor m) => b -> Wire m a b -> Wire m a b
+delayW y' w' =
+    Wire $ \x -> do
+        (y, w) <- stepWire w' x
+        pure (y', delayW y w)
 
 
 -- | Fold the given event.

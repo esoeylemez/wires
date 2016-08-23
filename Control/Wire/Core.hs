@@ -23,6 +23,7 @@ module Control.Wire.Core
       hold',
       never,
       scan,
+      scan',
       scanE,
 
       -- * Controllers
@@ -75,7 +76,7 @@ filterE _ _ = NotNow
 -- given initial value.  The value switch occurs in the next frame.
 
 hold :: (Applicative m) => a -> Wire m (Event a) a
-hold x' = Wire $ \mx -> pure (x', hold (event x' id mx))
+hold x' = delayW x' (hold' x')
 
 
 -- | Hold the latest occurrence of the given event starting with the
@@ -123,11 +124,19 @@ onEvent =
 -- | Left scan and hold of the given event.
 
 scan :: (Applicative m) => (a -> b -> b) -> b -> Wire m (Event a) b
-scan f = go
+scan f z = delayW z (scan' f z)
+
+
+-- | Left scan and hold of the given event.  Value switches occur
+-- instantly.
+
+scan' :: (Applicative m) => (a -> b -> b) -> b -> Wire m (Event a) b
+scan' f = go
     where
     go x' =
         Wire $ \mdx ->
-            pure (x', go (event id f mdx x'))
+            let x = event x' (`f` x') mdx
+            in pure (x, go x)
 
 
 -- | Left scan of the given event.
