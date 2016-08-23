@@ -19,6 +19,7 @@ module Control.Wire.Internal
 
 import Control.Arrow
 import Control.Category
+import Control.DeepSeq
 import Control.Monad.Fix
 import Data.Align
 import Data.Functor.Bind
@@ -66,6 +67,10 @@ instance Extend Event where
 instance (Monoid a) => Monoid (Event a) where
     mappend = alignWith (mergeThese mappend)
     mempty  = nil
+
+instance (NFData a) => NFData (Event a) where
+    rnf NotNow = ()
+    rnf (Now x) = rnf x
 
 instance Plus Event where
     zero = nil
