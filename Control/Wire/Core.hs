@@ -29,6 +29,7 @@ module Control.Wire.Core
       animate,
       control,
       newEvent,
+      onEvent,
       stepWire
     )
     where
@@ -109,6 +110,15 @@ newEvent f = go
         Wire $ \x -> do
             mx <- f x
             pure (maybe NotNow Now mx, go)
+
+
+-- | Run the given action whenever the given event occurs.
+
+onEvent :: (Applicative m) => Wire m (Event (m a)) (Event a)
+onEvent =
+    Wire $
+    event (pure (NotNow, onEvent))
+          (\c -> do x <- c; pure (Now x, onEvent))
 
 
 -- | Left scan and hold of the given event.
