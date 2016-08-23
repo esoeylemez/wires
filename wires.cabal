@@ -39,6 +39,7 @@ library
     exposed-modules:
         Control.Wire.Core
         Control.Wire.Internal
+        Control.Wire.Varying
 
 -- executable wires-experiment
 --     if flag(examples)
