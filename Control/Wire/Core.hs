@@ -71,14 +71,15 @@ filterE p ev@(Now x) | p x = ev
 filterE _ _ = NotNow
 
 
--- | Hold the latest occurrence of the given event.
+-- | Hold the latest occurrence of the given event starting with the
+-- given initial value.
 
 hold :: (Applicative m) => a -> Wire m (Event a) a
 hold x' = Wire $ (\x -> pure (x, hold x)) . event x' id
 
 
--- | Hold the latest occurrence of the given event.  The value switch
--- occurs instantly.
+-- | Hold the latest occurrence of the given event starting with the
+-- given initial value.  The value switch occurs instantly.
 
 hold' :: (Applicative m) => a -> Wire m (Event a) a
 hold' x' = Wire $ \mx -> pure (x', hold' (event x' id mx))
