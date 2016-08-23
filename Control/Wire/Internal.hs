@@ -76,6 +76,7 @@ instance Plus Event where
 
 newtype Wire m a b =
     Wire {
+      -- | Run a single frame of the given wire.
       stepWire :: a -> m (b, Wire m a b)
     }
     deriving (Functor)
