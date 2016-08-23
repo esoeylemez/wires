@@ -1,7 +1,7 @@
 name:     wires
 version:  0.1.0
-category: 
-synopsis: 
+category: Control, FRP
+synopsis: Functional reactive programming library
 
 maintainer:   Ertugrul Söylemez <esz@posteo.de>
 author:       Ertugrul Söylemez <esz@posteo.de>
@@ -11,7 +11,7 @@ bug-reports:  https://github.com/esoeylemez/wires/issues
 license:      BSD3
 license-file: LICENSE
 
-description: 
+description:  Functional reactive programming library.
 
 build-type:         Simple
 cabal-version:      >= 1.10
@@ -21,56 +21,29 @@ source-repository head
     type:     git
     location: https://github.com/esoeylemez/wires.git
 
-flag Devel
-    default: False
-    description: Development dependencies
-    manual: True
-
-flag Examples
-    default: False
-    description: Build the example programs
-    manual: True
+-- flag Examples
+--     default: False
+--     description: Build the example programs
+--     manual: True
 
 
 library
     build-depends:
-        base                >= 4.8 && < 5
-    if flag(devel)
-        build-depends: rapid
+        base                >= 4.8 && < 5,
+        profunctors         >= 5.2 && < 6
     default-language: Haskell2010
     ghc-options: -W -fdefer-typed-holes
     exposed-modules:
+        Control.Wire.Internal
 
-executable wires
-    build-depends:
-        base                >= 4.8  && < 5,
-        wires
-    default-language: Haskell2010
-    ghc-options: -W -threaded -fdefer-typed-holes
-    hs-source-dirs: programs
-    main-is: wires.hs
-
-executable wires-experiment
-    if flag(examples)
-        build-depends:
-            base >= 4.8 && < 5,
-            wires
-    else
-        buildable: False
-    default-language: Haskell2010
-    ghc-options: -threaded -fdefer-typed-holes
-    hs-source-dirs: examples
-    main-is: experiment.hs
-
-test-suite tests
-    type: exitcode-stdio-1.0
-    build-depends:
-        base                >= 4.8 && < 5,
-        smallcheck,
-        tasty,
-        tasty-smallcheck,
-        wires
-    default-language: Haskell2010
-    ghc-options: -W -threaded -with-rtsopts=-N -fdefer-typed-holes
-    hs-source-dirs: tests
-    main-is: Props.hs
+-- executable wires-experiment
+--     if flag(examples)
+--         build-depends:
+--             base >= 4.8 && < 5,
+--             wires
+--     else
+--         buildable: False
+--     default-language: Haskell2010
+--     ghc-options: -threaded -fdefer-typed-holes
+--     hs-source-dirs: examples
+--     main-is: experiment.hs
