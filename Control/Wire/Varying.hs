@@ -4,6 +4,7 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 
@@ -16,7 +17,10 @@ module Control.Wire.Varying
       -- * Events
       holdV,
       holdV',
-      scanV
+      scanV,
+
+      -- * Controllers
+      animateV
     )
     where
 
@@ -83,6 +87,23 @@ instance (Num a) => Num (Varying a) where
     fromInteger = pure . fromInteger
     negate = fmap negate
     signum = fmap signum
+
+
+-- | Run the given action each time the given time-varying value
+-- changes.
+
+animateV :: (Applicative m) => (a -> m b) -> Wire m (Varying a) (Varying b)
+animateV f =
+    Wire $ \(Varying cx x) -> do
+        y <- f x
+        pure (Varying cx y, go y)
+
+    where
+    go y' =
+        Wire $ \(Varying cx x) ->
+            if cx
+              then do y <- f x; pure (Varying True y, go y)
+              else pure (Varying False y', go y')
 
 
 -- | The change event of the given time-varying value.
