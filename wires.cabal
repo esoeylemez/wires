@@ -36,6 +36,7 @@ library
     default-language: Haskell2010
     ghc-options: -W -fdefer-typed-holes
     exposed-modules:
+        Control.Wire.Core
         Control.Wire.Internal
 
 -- executable wires-experiment
