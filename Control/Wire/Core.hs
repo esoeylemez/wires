@@ -35,7 +35,6 @@ module Control.Wire.Core
     where
 
 import Control.Wire.Internal
-import Data.Align
 
 
 -- | Run the given action in every frame.
@@ -98,7 +97,7 @@ initial f =
 -- | The event that never occurs.
 
 never :: Event a
-never = nil
+never = NotNow
 
 
 -- | Construct an event from the given polling function.
