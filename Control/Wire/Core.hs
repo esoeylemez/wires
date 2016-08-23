@@ -72,17 +72,17 @@ filterE _ _ = NotNow
 
 
 -- | Hold the latest occurrence of the given event starting with the
--- given initial value.
+-- given initial value.  The value switch occurs in the next frame.
 
 hold :: (Applicative m) => a -> Wire m (Event a) a
-hold x' = Wire $ (\x -> pure (x, hold x)) . event x' id
+hold x' = Wire $ \mx -> pure (x', hold (event x' id mx))
 
 
 -- | Hold the latest occurrence of the given event starting with the
 -- given initial value.  The value switch occurs instantly.
 
 hold' :: (Applicative m) => a -> Wire m (Event a) a
-hold' x' = Wire $ \mx -> pure (x', hold' (event x' id mx))
+hold' x' = Wire $ (\x -> pure (x, hold' x)) . event x' id
 
 
 -- | Run the given action once at the beginning.
