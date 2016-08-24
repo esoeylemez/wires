@@ -48,9 +48,10 @@ myApp = proc _ -> do
 
     animate -< liftIO $ do
         performGC
-        mem <- (/ 1024) . fromIntegral . currentBytesUsed <$> getGCStats
-        printf "\r%8.2f %s %s\027[K"
-            (mem :: Double)
+        mem <- (`div` 1024) . currentBytesUsed <$> getGCStats
+        printf "\r%8dk %5.2f %s %s\027[K"
+            mem
+            vel
             (if acc > 0 then ">" else "<")
             (map (\xI ->
                       let x = -1 + 2 * fromInteger xI / 59
