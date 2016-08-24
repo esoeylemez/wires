@@ -7,6 +7,8 @@
 module Control.Wire.Utils
     ( -- * Event utilities
       filterE,
+      scan,
+      scan',
       scanE,
 
       -- * Controller utilities
@@ -14,14 +16,29 @@ module Control.Wire.Utils
     )
     where
 
+import Control.Category
 import Control.Wire.Core
 import Data.Profunctor
+import Prelude hiding ((.), id)
 
 
 -- | Filter event occurrences using the given function.
 
 filterE :: (a -> Bool) -> Event a -> Event a
 filterE p = catMapE (\x -> if p x then Just x else Nothing)
+
+
+-- | Left scan and hold of the given event.
+
+scan :: (Monad m) => a -> Wire m (Event (a -> a)) a
+scan x0 = hold x0 . scanE x0
+
+
+-- | Left scan and hold of the given event.  The value switch occurs
+-- instantly.
+
+scan' :: (Monad m) => a -> Wire m (Event (a -> a)) a
+scan' x0 = hold' x0 . scanE x0
 
 
 -- | Left scan of the given event.
