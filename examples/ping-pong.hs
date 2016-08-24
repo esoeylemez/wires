@@ -18,6 +18,7 @@ import System.Clock
 import System.IO
 import System.Mem
 import Text.Printf
+import Utils
 
 
 newCharEvent :: (MonadIO m) => Wire m a (Event Char)
@@ -40,7 +41,7 @@ newTickEvent = proc _ -> do
 myApp :: (MonadIO m) => Wire m a (Event ())
 myApp = proc _ -> do
     deltas <- newTickEvent -< ()
-    delta <- hold 0 -< deltas
+    fps <- hold 0 . (fmap recip <$> average 25) -< deltas
     chars <- newCharEvent -< ()
 
     acc <- scan 1 -< negate <$ filterE (== ' ') chars
@@ -52,7 +53,7 @@ myApp = proc _ -> do
         mem <- (`div` 1024) . currentBytesUsed <$> getGCStats
         printf "\r%8dk %8.2f %5.2f %s %s\027[K"
             mem
-            (recip delta)
+            fps
             vel
             (if acc > 0 then ">" else "<")
             (map (\xI ->

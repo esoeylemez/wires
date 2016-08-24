@@ -49,6 +49,8 @@ executable wires-ping-pong
         build-depends:
             base >= 4.8 && < 5,
             clock,
+            containers,
+            profunctors,
             wires
     else
         buildable: False
@@ -56,3 +58,4 @@ executable wires-ping-pong
     ghc-options: -threaded -fdefer-typed-holes
     hs-source-dirs: examples
     main-is: ping-pong.hs
+    other-modules: Utils
