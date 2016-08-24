@@ -21,10 +21,10 @@ source-repository head
     type:     git
     location: https://github.com/esoeylemez/wires.git
 
--- flag Examples
---     default: False
---     description: Build the example programs
---     manual: True
+flag Examples
+    default: False
+    description: Build the example programs
+    manual: True
 
 
 library
@@ -44,14 +44,15 @@ library
         Control.Wire.Utils
         Control.Wire.Varying
 
--- executable wires-experiment
---     if flag(examples)
---         build-depends:
---             base >= 4.8 && < 5,
---             wires
---     else
---         buildable: False
---     default-language: Haskell2010
---     ghc-options: -threaded -fdefer-typed-holes
---     hs-source-dirs: examples
---     main-is: experiment.hs
+executable wires-ping-pong
+    if flag(examples)
+        build-depends:
+            base >= 4.8 && < 5,
+            clock,
+            wires
+    else
+        buildable: False
+    default-language: Haskell2010
+    ghc-options: -threaded -fdefer-typed-holes
+    hs-source-dirs: examples
+    main-is: ping-pong.hs
