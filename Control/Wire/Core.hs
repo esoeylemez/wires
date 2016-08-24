@@ -25,6 +25,7 @@ module Control.Wire.Core
       scan,
       scan',
       scanE,
+      unfoldE,
 
       -- * Controllers
       animate,
@@ -149,6 +150,18 @@ scanE f = go
             pure (case mdx of
                     NotNow -> (NotNow, go x')
                     Now dx -> let x = f dx x' in (Now x, go x))
+
+
+-- | Unfold the given event.
+
+unfoldE :: (Applicative m) => (a -> s -> (b, s)) -> s -> Wire m (Event a) (Event b)
+unfoldE f = go
+    where
+    go s' =
+        Wire $
+        pure .
+        event (NotNow, go s')
+              (\ds -> let (x, s) = f ds s' in (Now x, go s))
 
 
 -- | Run the given action to initialise the given wire.  Example:
