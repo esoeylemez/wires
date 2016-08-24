@@ -4,6 +4,7 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Control.Wire.Core
@@ -19,7 +20,14 @@ module Control.Wire.Core
       hold,
       hold',
       never,
-      unfoldE
+      unfoldE,
+
+      -- * Switching
+      manage,
+      manage',
+      sequenceW,
+      switch,
+      switch'
     )
     where
 
@@ -59,10 +67,71 @@ initial :: (Applicative m) => Wire m (m a) a
 initial = Wire $ fmap (\y -> (y, pure y))
 
 
+-- | Sequence each of the given wires and collect their results.  If the
+-- given event occurs, the its function is applied to the current set of
+-- wires.  Changes are applied in the next frame.
+
+manage
+    :: (Traversable f, Applicative m)
+    => f (Wire m a b)
+    -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
+manage ws' =
+    Wire $ \(x, mf) -> do
+        ys <- traverse (`stepWire` x) ws'
+        pure (fst <$> ys,
+              manage (event id id mf (snd <$> ys)))
+
+
+-- | Sequence each of the given wires and collect their results.  If the
+-- given event occurs, the its function is applied to the current set of
+-- wires.  Changes are applied immediately.
+
+manage'
+    :: (Traversable f, Applicative m)
+    => f (Wire m a b)
+    -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
+manage' ws' =
+    Wire $ \(x, mf) -> do
+        ys <- traverse (`stepWire` x) (event id id mf ws')
+        pure (fst <$> ys, manage (snd <$> ys))
+
+
 -- | The event that never occurs.
 
 never :: Event a
 never = NotNow
+
+
+-- | Sequence each of the given wires and collect their results.
+
+sequenceW :: (Traversable f, Applicative m) => f (Wire m a b) -> Wire m a (f b)
+sequenceW ws' =
+    Wire $ \x -> do
+        ys <- traverse (\w' -> stepWire w' x) ws'
+        pure (fst <$> ys, sequenceW (snd <$> ys))
+
+
+-- | Acts like the given wire until its event occurs, then switches to
+-- the wire the occurrence contained.  The switch occurs in the next
+-- frame.
+
+switch :: (Functor m) => Wire m a (b, Event (Wire m a b)) -> Wire m a b
+switch w' =
+    Wire $ \x -> do
+        ((y, mw), w) <- stepWire w' x
+        pure (y, event (switch w) id mw)
+
+
+-- | Acts like the given wire until its event occurs, then switches to
+-- the wire the occurrence contained.  The switch occurs immediately.
+
+switch' :: (Monad m) => Wire m a (b, Event (Wire m a b)) -> Wire m a b
+switch' w' =
+    Wire $ \x -> do
+        ((y, mw), w) <- stepWire w' x
+        case mw of
+          NotNow -> pure (y, switch w)
+          Now nw -> stepWire nw x
 
 
 -- | Unfold the given event using the state transition functions it
