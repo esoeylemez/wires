@@ -43,7 +43,7 @@ myApp = proc _ -> do
     chars <- newCharEvent -< ()
 
     acc <- scan 1 -< negate <$ filterE (== ' ') chars
-    vel <- scan 0 -< fmap (\dt -> min 10 . max (-10) . (+ acc*dt)) deltas
+    vel <- scan 0 -< fmap (\dt -> min 2 . max (-2) . (+ acc*dt)) deltas
     pos <- scan 0 -< fmap (\dt -> min 1 . max (-1) . (+ vel*dt)) deltas
 
     animate -< liftIO $ do
