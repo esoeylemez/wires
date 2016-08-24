@@ -8,10 +8,10 @@ module Control.Wire
     ( -- * Wires
       module Control.Category,
       module Control.Wire.Core,
-      module Control.Wire.Varying
+      module Control.Wire.Utils
     )
     where
 
 import Control.Category
 import Control.Wire.Core
-import Control.Wire.Varying
+import Control.Wire.Utils

@@ -38,8 +38,10 @@ library
     ghc-options: -W -fdefer-typed-holes
     exposed-modules:
         Control.Wire
+        Control.Wire.Controller
         Control.Wire.Core
         Control.Wire.Internal
+        Control.Wire.Utils
         Control.Wire.Varying
 
 -- executable wires-experiment
