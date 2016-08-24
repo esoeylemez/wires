@@ -40,6 +40,7 @@ newTickEvent = proc _ -> do
 myApp :: (MonadIO m) => Wire m a (Event ())
 myApp = proc _ -> do
     deltas <- newTickEvent -< ()
+    delta <- hold 0 -< deltas
     chars <- newCharEvent -< ()
 
     acc <- scan 1 -< negate <$ filterE (== ' ') chars
@@ -49,8 +50,9 @@ myApp = proc _ -> do
     animate -< liftIO $ do
         performGC
         mem <- (`div` 1024) . currentBytesUsed <$> getGCStats
-        printf "\r%8dk %5.2f %s %s\027[K"
+        printf "\r%8dk %8.2f %5.2f %s %s\027[K"
             mem
+            (recip delta)
             vel
             (if acc > 0 then ">" else "<")
             (map (\xI ->
