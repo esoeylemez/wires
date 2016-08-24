@@ -5,14 +5,14 @@
 -- Stability:  experimental
 
 module Control.Wire.Utils
-    ( -- * Event utilities
+    ( -- * Wire utilities
+      withM_,
+
+      -- * Event utilities
       filterE,
       scan,
       scan',
-      scanE,
-
-      -- * Controller utilities
-      withM_
+      scanE
     )
     where
 
