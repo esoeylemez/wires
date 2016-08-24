@@ -13,7 +13,6 @@ module Control.Wire.Core
       Wire,
       evalWith,
       initial,
-      withM,
 
       -- * Events
       Event,
@@ -32,17 +31,20 @@ module Control.Wire.Core
       control,
       newEvent,
       onEvent,
-      stepWire
+      stepWire,
+      withM,
+      withM_
     )
     where
 
 import Control.Wire.Internal
+import Data.Profunctor
 
 
 -- | Run the given action in every frame.
 
-animate :: (Applicative m) => (a -> m b) -> Wire m a b
-animate f = let w = Wire (fmap (, w) . f) in w
+animate :: (Applicative m) => Wire m (m a) a
+animate = let w = Wire (fmap (, w)) in w
 
 
 -- | Map and filter event occurrences using the given function.
@@ -63,7 +65,7 @@ control w' = do
 -- arguments include functions like `seq`.
 
 evalWith :: (Applicative m) => (forall b. a -> b -> b) -> Wire m a a
-evalWith strat = animate (\x -> x `strat` pure x)
+evalWith strat = lmap (\x -> x `strat` pure x) animate
 
 
 -- | Filter event occurrences using the given function.
@@ -89,10 +91,10 @@ hold' x' = Wire $ (\x -> pure (x, hold' x)) . event x' id
 
 -- | Run the given action once at the beginning.
 
-initial :: (Applicative m) => (a -> m b) -> Wire m a b
-initial f =
-    Wire $ \x -> do
-        y <- f x
+initial :: (Applicative m) => Wire m (m a) a
+initial =
+    Wire $ \c -> do
+        y <- c
         pure (y, pure y)
 
 
@@ -104,13 +106,11 @@ never = NotNow
 
 -- | Construct an event from the given polling function.
 
-newEvent :: (Functor m) => (a -> m (Maybe b)) -> Wire m a (Event b)
-newEvent f = go
-    where
-    go =
-        Wire $ \x -> do
-            mx <- f x
-            pure (maybe NotNow Now mx, go)
+newEvent :: (Functor m) => Wire m (m (Maybe b)) (Event b)
+newEvent =
+    Wire $ \c -> do
+        mx <- c
+        pure (maybe NotNow Now mx, newEvent)
 
 
 -- | Run the given action whenever the given event occurs.
@@ -166,10 +166,22 @@ unfoldE f = go
 
 -- | Run the given action to initialise the given wire.  Example:
 --
--- > withM (scan f) action
+-- > withM (scan f) actionFromInitialInput
 
 withM :: (Monad m) => (s -> Wire m a b) -> (a -> m s) -> Wire m a b
 withM w f =
     Wire $ \x -> do
         s0 <- f x
+        stepWire (w s0) x
+
+
+-- | Run the given action to initialise the given wire.  Simplified
+-- variant of 'withM'.  Example:
+--
+-- > withM_ (scan f) action
+
+withM_ :: (Monad m) => (s -> Wire m a b) -> m s -> Wire m a b
+withM_ w c =
+    Wire $ \x -> do
+        s0 <- c
         stepWire (w s0) x
