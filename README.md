@@ -27,17 +27,13 @@ the glue between the application and the real world, i.e. how events and
 time-varying values map to actual things on the screen or in the
 network.  The module structure reflects that distinction:
 
-  * `Control.Wire`: the application language (basically core + utils).
-
-  * `Control.Wire.Controller`: the controller language.
-
-  * `Control.Wire.Core`: the core application language.
-
-  * `Control.Wire.Internal`: you should never need this module.  If you
-    feel that you do, please file a feature request.
-
-  * `Control.Wire.Utils`: extra utilities based on the core application
-    language.
+Module                    | Purpose
+--------------------------|-----------------------------------------------
+`Control.Wire`            | Application language (basically core + utils).
+`Control.Wire.Controller` | Controller language.
+`Control.Wire.Core`       | Core application language.
+`Control.Wire.Internal`   | You should never need this module.
+`Control.Wire.Utils`      | Extra application utilities.
 
 Modules not listed here are highly experimental and should not be used.
 
