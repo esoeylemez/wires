@@ -4,7 +4,6 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 
@@ -95,14 +94,14 @@ instance (Num a) => Num (Varying a) where
 animateV :: (Applicative m) => (a -> m b) -> Wire m (Varying a) (Varying b)
 animateV f =
     Wire $ \(Varying cx x) -> do
-        y <- f x
-        pure (Varying cx y, go y)
+        (\y -> (Varying cx y, go y))
+        <$> f x
 
     where
     go y' =
         Wire $ \(Varying cx x) ->
             if cx
-              then do y <- f x; pure (Varying True y, go y)
+              then (\y -> (Varying True y, go y)) <$> f x
               else pure (Varying False y', go y')
 
 

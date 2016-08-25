@@ -4,7 +4,6 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE DeriveFunctor #-}
 
 module Control.Wire.Internal
@@ -91,10 +90,10 @@ instance (Applicative m) => Applicative (Wire m a) where
     pure x = let w = Wire (\_ -> pure (x, w)) in w
 
     wf' <*> wx' =
-        Wire $ \x' -> do
-            (f, wf) <- stepWire wf' x'
-            (x, wx) <- stepWire wx' x'
-            pure (f x, wf <*> wx)
+        Wire $ \x' ->
+            (\(f, wf) (x, wx) -> (f x, wf <*> wx))
+            <$> stepWire wf' x'
+            <*> stepWire wx' x'
 
 instance (Monad m) => Arrow (Wire m) where
     arr f = let w = Wire (\x -> pure (f x, w)) in w
@@ -102,16 +101,16 @@ instance (Monad m) => Arrow (Wire m) where
     second = second'
 
     wx' &&& wy' =
-        Wire $ \x' -> do
-            (x, wx) <- stepWire wx' x'
-            (y, wy) <- stepWire wy' x'
-            pure ((x, y), wx &&& wy)
+        Wire $ \x' ->
+            (\(x, wx) (y, wy) -> ((x, y), wx &&& wy))
+            <$> stepWire wx' x'
+            <*> stepWire wy' x'
 
     wx' *** wy' =
-        Wire $ \(x', y') -> do
-            (x, wx) <- stepWire wx' x'
-            (y, wy) <- stepWire wy' y'
-            pure ((x, y), wx *** wy)
+        Wire $ \(x', y') ->
+            (\(x, wx) (y, wy) -> ((x, y), wx *** wy))
+            <$> stepWire wx' x'
+            <*> stepWire wy' y'
 
 instance (Monad m) => ArrowChoice (Wire m) where
     left = left'
@@ -119,13 +118,13 @@ instance (Monad m) => ArrowChoice (Wire m) where
 
     wl' +++ wr' =
         Wire $
-        either (\x -> do (y, wl) <- stepWire wl' x; pure (Left y, wl +++ wr'))
-               (\x -> do (y, wr) <- stepWire wr' x; pure (Right y, wl' +++ wr))
+        either (\x -> (\(y, wl) -> (Left y,  wl +++ wr')) <$> stepWire wl' x)
+               (\x -> (\(y, wr) -> (Right y, wl' +++ wr)) <$> stepWire wr' x)
 
     wl' ||| wr' =
         Wire $
-        either (\x -> do (y, wl) <- stepWire wl' x; pure (y, wl ||| wr'))
-               (\x -> do (y, wr) <- stepWire wr' x; pure (y, wl' ||| wr))
+        either (\x -> (\(y, wl) -> (y, wl ||| wr')) <$> stepWire wl' x)
+               (\x -> (\(y, wr) -> (y, wl' ||| wr)) <$> stepWire wr' x)
 
 instance (MonadFix m) => ArrowLoop (Wire m) where
     loop = unfirst
@@ -142,13 +141,13 @@ instance (Monad m) => Category (Wire m) where
 instance (Applicative m) => Choice (Wire m) where
     left' w' =
         Wire $
-        either (\x -> do (y, w) <- stepWire w' x; pure (Left y, left' w))
+        either (\x -> (\(y, w) -> (Left y, left' w)) <$> stepWire w' x)
                (\x -> pure (Right x, left' w'))
 
     right' w' =
         Wire $
         either (\x -> pure (Left x, right' w'))
-               (\x -> do (y, w) <- stepWire w' x; pure (Right y, right' w))
+               (\x -> (\(y, w) -> (Right y, right' w)) <$> stepWire w' x)
 
 instance (MonadFix m) => Costrong (Wire m) where
     unfirst w' =
@@ -174,23 +173,23 @@ instance (Functor m) => Profunctor (Wire m) where
 
 instance (Functor m) => Strong (Wire m) where
     first' w' =
-        Wire $ \(x', y) -> do
-            (x, w) <- stepWire w' x'
-            pure ((x, y), first' w)
+        Wire $ \(x', y) ->
+            (\(x, w) -> ((x, y), first' w))
+            <$> stepWire w' x'
 
     second' w' =
-        Wire $ \(x, y') -> do
-            (y, w) <- stepWire w' y'
-            pure ((x, y), second' w)
+        Wire $ \(x, y') ->
+            (\(y, w) -> ((x, y), second' w))
+            <$> stepWire w' y'
 
 
 -- | Delay the result of the given wire by one frame.
 
 delayW :: (Functor m) => b -> Wire m a b -> Wire m a b
 delayW y' w' =
-    Wire $ \x -> do
-        (y, w) <- stepWire w' x
-        pure (y', delayW y w)
+    Wire $ \x ->
+        (\(y, w) -> (y', delayW y w))
+        <$> stepWire w' x
 
 
 -- | Fold the given event.

@@ -4,7 +4,6 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Control.Wire.Core
@@ -76,10 +75,10 @@ manage
     => f (Wire m a b)
     -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
 manage ws' =
-    Wire $ \(x, mf) -> do
-        ys <- traverse (`stepWire` x) ws'
-        pure (fst <$> ys,
-              manage (event id id mf (snd <$> ys)))
+    Wire $ \(x, mf) ->
+        (\ys -> (fst <$> ys,
+                 manage (event id id mf (snd <$> ys))))
+        <$> traverse (`stepWire` x) ws'
 
 
 -- | Sequence each of the given wires and collect their results.  If the
@@ -91,9 +90,10 @@ manage'
     => f (Wire m a b)
     -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
 manage' ws' =
-    Wire $ \(x, mf) -> do
-        ys <- traverse (`stepWire` x) (event id id mf ws')
-        pure (fst <$> ys, manage (snd <$> ys))
+    Wire $ \(x, mf) ->
+        (\ys -> (fst <$> ys,
+                 manage (snd <$> ys)))
+        <$> traverse (`stepWire` x) (event id id mf ws')
 
 
 -- | The event that never occurs.
@@ -106,9 +106,10 @@ never = NotNow
 
 sequenceW :: (Traversable f, Applicative m) => f (Wire m a b) -> Wire m a (f b)
 sequenceW ws' =
-    Wire $ \x -> do
-        ys <- traverse (\w' -> stepWire w' x) ws'
-        pure (fst <$> ys, sequenceW (snd <$> ys))
+    Wire $ \x ->
+        (\ys -> (fst <$> ys,
+                 sequenceW (snd <$> ys)))
+        <$> traverse (\w' -> stepWire w' x) ws'
 
 
 -- | Acts like the given wire until its event occurs, then switches to
@@ -117,9 +118,9 @@ sequenceW ws' =
 
 switch :: (Functor m) => Wire m a (b, Event (Wire m a b)) -> Wire m a b
 switch w' =
-    Wire $ \x -> do
-        ((y, mw), w) <- stepWire w' x
-        pure (y, event (switch w) id mw)
+    Wire $ \x ->
+        (\((y, mw), w) -> (y, event (switch w) id mw))
+        <$> stepWire w' x
 
 
 -- | Acts like the given wire until its event occurs, then switches to
