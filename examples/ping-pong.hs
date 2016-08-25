@@ -5,7 +5,6 @@
 -- Stability:  experimental
 
 {-# LANGUAGE Arrows #-}
-{-# LANGUAGE BangPatterns #-}
 
 module Main (main) where
 
