@@ -4,6 +4,7 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
 
@@ -28,7 +29,9 @@ import Control.DeepSeq
 import Control.Monad
 import Control.Wire.Internal
 import Data.String
+#if MIN_VERSION_base(4,9,0)
 import Numeric
+#endif
 
 
 -- | A 'Varying' is a behaviour combined with an event that tracks when
@@ -60,10 +63,12 @@ instance (Floating a) => Floating (Varying a) where
     cos = fmap cos; acos = fmap acos; cosh = fmap cosh; acosh = fmap acosh
     tan = fmap tan; atan = fmap atan; tanh = fmap tanh; atanh = fmap atanh
 
+#if MIN_VERSION_base(4,9,0)
     log1p = fmap log1p
     expm1 = fmap expm1
     log1pexp = fmap log1pexp
     log1mexp = fmap log1mexp
+#endif
 
 instance (Fractional a) => Fractional (Varying a) where
     (/) = liftA2 (/)
