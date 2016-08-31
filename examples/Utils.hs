@@ -20,8 +20,7 @@ import qualified Data.Sequence as Seq
 -- occurrences.
 
 average :: (Fractional a, Monad m) => Int -> Wire m (Event a) (Event a)
-average n =
-    lmap (fmap go) (unfoldE Seq.empty)
+average n = lmap (fmap go) (unfoldE Seq.empty)
     where
     go x xs' =
         let xs = Seq.take n (x Seq.<| xs')
