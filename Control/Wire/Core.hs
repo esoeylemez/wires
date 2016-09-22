@@ -66,9 +66,9 @@ initial :: (Applicative m) => Wire m (m a) a
 initial = Wire $ fmap (\y -> (y, pure y))
 
 
--- | Sequence each of the given wires and collect their results.  If the
--- given event occurs, the its function is applied to the current set of
--- wires.  Changes are applied in the next frame.
+-- | Sequence each of the given wires and collect their results.
+-- Whenever the given event occurs its function is applied to the
+-- current set of wires.  Changes are applied in the next frame.
 
 manage
     :: (Traversable f, Applicative m)
@@ -81,9 +81,9 @@ manage ws' =
         <$> traverse (`stepWire` x) ws'
 
 
--- | Sequence each of the given wires and collect their results.  If the
--- given event occurs, the its function is applied to the current set of
--- wires.  Changes are applied immediately.
+-- | Sequence each of the given wires and collect their results.
+-- Whenever the given event occurs its function is applied to the
+-- current set of wires.  Changes are applied immediately.
 
 manage'
     :: (Traversable f, Applicative m)
