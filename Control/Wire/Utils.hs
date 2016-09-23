@@ -12,13 +12,16 @@ module Control.Wire.Utils
       filterE,
       scan,
       scan',
-      scanE
+      scanE,
+      unlessE
     )
     where
 
 import Control.Category
 import Control.Wire.Core
+import Data.Align
 import Data.Profunctor
+import Data.These
 import Prelude hiding ((.), id)
 
 
@@ -45,6 +48,13 @@ scan' x0 = hold' x0 . scanE x0
 
 scanE :: (Applicative m) => a -> Wire m (Event (a -> a)) (Event a)
 scanE = lmap (fmap $ \f x -> let y = f x in (y, y)) . unfoldE
+
+
+-- | Event difference: like the left event, but only when the right
+-- event doesn't occur at the same time.
+
+unlessE :: Event a -> Event b -> Event a
+unlessE mx my = catMapE justThis (align mx my)
 
 
 -- | Run the given action to initialise the given wire.  Simplified
