@@ -92,7 +92,7 @@ manage'
 manage' ws' =
     Wire $ \(x, mf) ->
         (\ys -> (fst <$> ys,
-                 manage (snd <$> ys)))
+                 manage' (snd <$> ys)))
         <$> traverse (`stepWire` x) (event id id mf ws')
 
 
@@ -131,7 +131,7 @@ switch' w' =
     Wire $ \x -> do
         ((y, mw), w) <- stepWire w' x
         case mw of
-          NotNow -> pure (y, switch w)
+          NotNow -> pure (y, switch' w)
           Now nw -> stepWire nw x
 
 
