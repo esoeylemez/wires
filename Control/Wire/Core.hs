@@ -22,6 +22,7 @@ module Control.Wire.Core
       unfoldE,
 
       -- * Switching
+      Switch(..),
       manage,
       manage',
       sequenceW,
@@ -31,6 +32,15 @@ module Control.Wire.Core
     where
 
 import Control.Wire.Internal
+
+
+-- | Functions to be applied to the current set of wires managed by
+-- 'manage'.
+
+newtype Switch f m a b =
+    Switch {
+      fromSwitch :: forall s. (Wire m a b -> s) -> f s -> f s
+    }
 
 
 -- | Map and filter event occurrences using the given function.
@@ -73,11 +83,11 @@ initial = Wire $ fmap (\y -> (y, pure y))
 manage
     :: (Traversable f, Applicative m)
     => f (Wire m a b)
-    -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
+    -> Wire m (a, Event (Switch f m a b)) (f b)
 manage ws' =
     Wire $ \(x, mf) ->
         (\ys -> (fst <$> ys,
-                 manage (event id id mf (snd <$> ys))))
+                 manage (event id (\(Switch f) -> f id) mf (snd <$> ys))))
         <$> traverse (`stepWire` x) ws'
 
 
@@ -88,12 +98,12 @@ manage ws' =
 manage'
     :: (Traversable f, Applicative m)
     => f (Wire m a b)
-    -> Wire m (a, Event (f (Wire m a b) -> f (Wire m a b))) (f b)
+    -> Wire m (a, Event (Switch f m a b)) (f b)
 manage' ws' =
     Wire $ \(x, mf) ->
         (\ys -> (fst <$> ys,
                  manage' (snd <$> ys)))
-        <$> traverse (`stepWire` x) (event id id mf ws')
+        <$> traverse (`stepWire` x) (event id (\(Switch f) -> f id) mf ws')
 
 
 -- | The event that never occurs.
