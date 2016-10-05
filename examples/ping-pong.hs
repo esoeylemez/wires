@@ -39,6 +39,7 @@ newTickEvent = proc _ -> do
 
 myApp :: (MonadIO m) => Wire m a (Event ())
 myApp = proc _ -> do
+    initial -< liftIO $ putStrLn "Let's do this!"
     deltas <- newTickEvent -< ()
     fps <- hold 0 . (fmap recip <$> average 25) -< deltas
     chars <- newCharEvent -< ()
@@ -60,6 +61,8 @@ myApp = proc _ -> do
                       in if abs (pos - x) < 0.1 then 'X' else '.')
                  [0..59])
         hFlush stdout
+
+    onEvent -< liftIO (putStrLn "") <$ filterE (== '\n') chars
 
     id -< () <$ filterE (== 'q') chars
 
