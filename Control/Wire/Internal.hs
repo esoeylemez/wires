@@ -4,6 +4,7 @@
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
 
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveFunctor #-}
 
 module Control.Wire.Internal
@@ -84,7 +85,6 @@ newtype Wire m a b =
       -- | Run a single frame of the given wire.
       stepWire :: a -> m (b, Wire m a b)
     }
-    deriving (Functor)
 
 instance (Applicative m) => Applicative (Wire m a) where
     pure x = let w = Wire (\_ -> pure (x, w)) in w
@@ -134,8 +134,8 @@ instance (Monad m) => Category (Wire m) where
 
     w2' . w1' =
         Wire $ \x0 -> do
-            (x1, w1) <- stepWire w1' x0
-            (x2, w2) <- stepWire w2' x1
+            !(x1, w1) <- stepWire w1' x0
+            !(x2, w2) <- stepWire w2' x1
             pure (x2, w2 . w1)
 
 instance (Applicative m) => Choice (Wire m) where
@@ -160,6 +160,9 @@ instance (MonadFix m) => Costrong (Wire m) where
             (\((_, x), w) -> (x, unsecond w))
             <$> mfix (\r -> stepWire w' (fst (fst r), x'))
 
+instance (Functor m) => Functor (Wire m a) where
+    fmap = rmap
+
 instance (Functor m) => Profunctor (Wire m) where
     dimap fl fr = go
         where
@@ -169,7 +172,9 @@ instance (Functor m) => Profunctor (Wire m) where
         where
         go w' = Wire (fmap (\(y, w) -> (y, go w)) . stepWire w' . f)
 
-    rmap = fmap
+    rmap f = go
+        where
+        go w' = Wire $ fmap (\(y, w) -> (f y, go w)) . stepWire w'
 
 instance (Functor m) => Strong (Wire m) where
     first' w' =
