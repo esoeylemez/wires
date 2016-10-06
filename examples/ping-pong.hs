@@ -36,11 +36,13 @@ newTickEvent = proc _ -> do
     secs = (/ 1000000000) . fromInteger . toNanoSecs
     getT = liftIO (getTime Monotonic)
 
+
 menu :: (MonadIO m) => Wire m a (Event (), Event (Wire m a (Event ())))
 menu = proc _ -> do
     initial -< liftIO $ putStrLn "Welcome! Press Enter to begin!"
     chars <- newCharEvent -< ()
-    id -< (\e -> (never, e)) $ myApp <$ filterE (== '\n') chars
+    id -< (never, myApp <$ filterE (== '\n') chars)
+
 
 myApp :: (MonadIO m) => Wire m a (Event ())
 myApp = proc _ -> do
