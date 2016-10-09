@@ -27,7 +27,10 @@ module Control.Wire.Core
       manage',
       sequenceW,
       switch,
-      switch'
+      switch',
+
+      -- * Monad transformers
+      hoistW
     )
     where
 
@@ -54,6 +57,17 @@ catMapE f = event NotNow (maybe NotNow Now . f)
 
 evalWith :: (Applicative m) => (forall b. a -> b -> b) -> Wire m a a
 evalWith strat = let w = Wire (\x -> x `strat` pure (x, w)) in w
+
+
+-- | Map the underlying monad using the given function.
+
+hoistW :: (Functor m) => (a -> a') -> (forall x. a -> m' x -> m x) -> Wire m' a' b -> Wire m a b
+hoistW f trans = go
+    where
+    go w' =
+        Wire $ \x ->
+            (\(y, w) -> (y, go w))
+            <$> trans x (stepWire w' (f x))
 
 
 -- | Hold the latest occurrence of the given event starting with the
