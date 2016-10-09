@@ -31,6 +31,7 @@ library
     build-depends:
         base                >= 4.8 && < 5,
         deepseq             >= 1.4 && < 2,
+        mtl                 >= 2.2 && < 3,
         profunctors         >= 5.2 && < 6,
         semigroupoids       >= 5.1 && < 6,
         these               >= 0.7 && < 1
@@ -41,6 +42,7 @@ library
         Control.Wire.Controller
         Control.Wire.Core
         Control.Wire.Internal
+        Control.Wire.Trans
         Control.Wire.Utils
         Control.Wire.Varying
 
