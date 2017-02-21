@@ -6,3 +6,7 @@
 /ghci-tmp
 /TAGS
 result
+
+*~
+.*.swp
+.stack-work
