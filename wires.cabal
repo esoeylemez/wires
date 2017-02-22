@@ -36,7 +36,7 @@ library
         semigroupoids       >= 5.1 && < 6,
         these               >= 0.7 && < 1
     default-language: Haskell2010
-    ghc-options: -W -fdefer-typed-holes
+    ghc-options: -W
     exposed-modules:
         Control.Wire
         Control.Wire.Controller
