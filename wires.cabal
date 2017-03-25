@@ -29,12 +29,12 @@ flag Examples
 
 library
     build-depends:
-        base                >= 4.8 && < 5,
-        deepseq             >= 1.4 && < 2,
-        mtl                 >= 2.2 && < 3,
-        profunctors         >= 5.2 && < 6,
-        semigroupoids       >= 5.1 && < 6,
-        these               >= 0.7 && < 1
+        base >= 4.8 && < 5,
+        deepseq == 1.4.*,
+        mtl >= 2.0 && < 2.3,
+        profunctors >= 5.0 && < 5.3,
+        semigroupoids >= 5.0 && < 5.2,
+        these == 0.7.*
     default-language: Haskell2010
     ghc-options: -W
     exposed-modules:
