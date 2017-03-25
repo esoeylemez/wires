@@ -1,5 +1,5 @@
 -- |
--- Copyright:  (c) 2016 Ertugrul Söylemez
+-- Copyright:  (c) 2017 Ertugrul Söylemez
 -- License:    BSD3
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
@@ -13,12 +13,15 @@ module Control.Wire.Utils
       scan,
       scan',
       scanE,
+      splitE,
+      unalignE,
       unlessE
     )
     where
 
 import Control.Category
 import Control.Wire.Core
+import Control.Wire.Internal
 import Data.Align
 import Data.Profunctor
 import Data.These
@@ -48,6 +51,25 @@ scan' x0 = hold' x0 . scanE x0
 
 scanE :: (Applicative m) => a -> Wire m (Event (a -> a)) (Event a)
 scanE = lmap (fmap $ \f x -> let y = f x in (y, y)) . unfoldE
+
+
+-- | Split the given event
+
+splitE :: Event (Either a b) -> (Event a, Event b)
+splitE NotNow          = (NotNow, NotNow)
+splitE (Now (Left x))  = (Now x,  NotNow)
+splitE (Now (Right y)) = (NotNow, Now y)
+
+
+-- | Split the given event
+--
+-- Inverse of 'align'.
+
+unalignE :: Event (These a b) -> (Event a, Event b)
+unalignE NotNow            = (NotNow, NotNow)
+unalignE (Now (This x))    = (Now x,  NotNow)
+unalignE (Now (That y))    = (NotNow, Now y)
+unalignE (Now (These x y)) = (Now x,  Now y)
 
 
 -- | Event difference: like the left event, but only when the right
