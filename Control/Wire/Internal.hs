@@ -26,6 +26,7 @@ import Data.Functor.Bind
 import Data.Functor.Extend
 import Data.Functor.Plus
 import Data.Profunctor
+import Data.Semigroup
 import Data.These
 import Prelude hiding ((.), id)
 
@@ -64,8 +65,8 @@ instance Extend Event where
     duplicated = event NotNow (Now . Now)
     extended f = event NotNow (Now . f . Now)
 
-instance (Monoid a) => Monoid (Event a) where
-    mappend = alignWith (mergeThese mappend)
+instance (Semigroup a) => Monoid (Event a) where
+    mappend = (<>)
     mempty  = nil
 
 instance (NFData a) => NFData (Event a) where
@@ -74,6 +75,9 @@ instance (NFData a) => NFData (Event a) where
 
 instance Plus Event where
     zero = nil
+
+instance (Semigroup a) => Semigroup (Event a) where
+    (<>) = alignWith (mergeThese (<>))
 
 
 -- | 'Wire' is a language for defining reactive systems.  It is similar
