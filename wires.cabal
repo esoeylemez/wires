@@ -46,6 +46,18 @@ library
         Control.Wire.Utils
         Control.Wire.Varying
 
+executable wires-feedback
+    if flag(examples)
+        build-depends:
+            base >= 4.8 && < 5,
+            wires
+    else
+        buildable: False
+    default-language: Haskell2010
+    ghc-options: -threaded -fdefer-typed-holes
+    hs-source-dirs: examples
+    main-is: feedback.hs
+
 executable wires-ping-pong
     if flag(examples)
         build-depends:

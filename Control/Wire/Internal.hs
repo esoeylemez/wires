@@ -91,7 +91,7 @@ instance (Applicative m) => Applicative (Wire m a) where
 
     wf' <*> wx' =
         Wire $ \x' ->
-            (\(f, wf) (x, wx) -> (f x, wf <*> wx))
+            (\ ~(f, wf) ~(x, wx) -> (f x, wf <*> wx))
             <$> stepWire wf' x'
             <*> stepWire wx' x'
 
@@ -102,7 +102,7 @@ instance (Monad m) => Arrow (Wire m) where
 
     wx' &&& wy' =
         Wire $ \x' ->
-            (\(x, wx) (y, wy) -> ((x, y), wx &&& wy))
+            (\ ~(x, wx) ~(y, wy) -> ((x, y), wx &&& wy))
             <$> stepWire wx' x'
             <*> stepWire wy' x'
 
@@ -118,13 +118,13 @@ instance (Monad m) => ArrowChoice (Wire m) where
 
     wl' +++ wr' =
         Wire $
-        either (\x -> (\(y, wl) -> (Left y,  wl +++ wr')) <$> stepWire wl' x)
-               (\x -> (\(y, wr) -> (Right y, wl' +++ wr)) <$> stepWire wr' x)
+        either (\x -> (\ ~(y, wl) -> (Left y,  wl +++ wr')) <$> stepWire wl' x)
+               (\x -> (\ ~(y, wr) -> (Right y, wl' +++ wr)) <$> stepWire wr' x)
 
     wl' ||| wr' =
         Wire $
-        either (\x -> (\(y, wl) -> (y, wl ||| wr')) <$> stepWire wl' x)
-               (\x -> (\(y, wr) -> (y, wl' ||| wr)) <$> stepWire wr' x)
+        either (\x -> (\ ~(y, wl) -> (y, wl ||| wr')) <$> stepWire wl' x)
+               (\x -> (\ ~(y, wr) -> (y, wl' ||| wr)) <$> stepWire wr' x)
 
 instance (MonadFix m) => ArrowLoop (Wire m) where
     loop = unfirst
@@ -134,52 +134,52 @@ instance (Monad m) => Category (Wire m) where
 
     w2' . w1' =
         Wire $ \x0 -> do
-            (x1, w1) <- stepWire w1' x0
-            (x2, w2) <- stepWire w2' x1
+            ~(x1, w1) <- stepWire w1' x0
+            ~(x2, w2) <- stepWire w2' x1
             pure (x2, w2 . w1)
 
 instance (Applicative m) => Choice (Wire m) where
     left' w' =
         Wire $
-        either (\x -> (\(y, w) -> (Left y, left' w)) <$> stepWire w' x)
+        either (\x -> (\ ~(y, w) -> (Left y, left' w)) <$> stepWire w' x)
                (\x -> pure (Right x, left' w'))
 
     right' w' =
         Wire $
         either (\x -> pure (Left x, right' w'))
-               (\x -> (\(y, w) -> (Right y, right' w)) <$> stepWire w' x)
+               (\x -> (\ ~(y, w) -> (Right y, right' w)) <$> stepWire w' x)
 
 instance (MonadFix m) => Costrong (Wire m) where
     unfirst w' =
         Wire $ \x' ->
-            (\((x, _), w) -> (x, unfirst w))
+            (\ ~(x, w) -> (fst x, unfirst w))
             <$> mfix (\r -> stepWire w' (x', snd (fst r)))
 
     unsecond w' =
         Wire $ \x' ->
-            (\((_, x), w) -> (x, unsecond w))
+            (\ ~(x, w) -> (snd x, unsecond w))
             <$> mfix (\r -> stepWire w' (fst (fst r), x'))
 
 instance (Functor m) => Profunctor (Wire m) where
     dimap fl fr = go
         where
-        go w' = Wire (fmap (\(y, w) -> (fr y, go w)) . stepWire w' . fl)
+        go w' = Wire (fmap (\ ~(y, w) -> (fr y, go w)) . stepWire w' . fl)
 
     lmap f = go
         where
-        go w' = Wire (fmap (\(y, w) -> (y, go w)) . stepWire w' . f)
+        go w' = Wire (fmap (\ ~(y, w) -> (y, go w)) . stepWire w' . f)
 
     rmap = fmap
 
 instance (Functor m) => Strong (Wire m) where
     first' w' =
-        Wire $ \(x', y) ->
-            (\(x, w) -> ((x, y), first' w))
+        Wire $ \ ~(x', y) ->
+            (\ ~(x, w) -> ((x, y), first' w))
             <$> stepWire w' x'
 
     second' w' =
-        Wire $ \(x, y') ->
-            (\(y, w) -> ((x, y), second' w))
+        Wire $ \ ~(x, y') ->
+            (\ ~(y, w) -> ((x, y), second' w))
             <$> stepWire w' y'
 
 
