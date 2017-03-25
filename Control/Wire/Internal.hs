@@ -192,7 +192,7 @@ instance (Functor m) => Strong (Wire m) where
 delayW :: (Functor m) => b -> Wire m a b -> Wire m a b
 delayW y' w' =
     Wire $
-        fmap (\(y, w) -> (y', delayW y w)) .
+        fmap (\ ~(y, w) -> (y', delayW y w)) .
         stepWire w'
 
 

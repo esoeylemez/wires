@@ -1,5 +1,5 @@
 -- |
--- Copyright:  (c) 2016 Ertugrul Söylemez
+-- Copyright:  (c) 2017 Ertugrul Söylemez
 -- License:    BSD3
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
@@ -66,7 +66,7 @@ hoistW f trans = go
     where
     go w' =
         Wire $ \x ->
-            (\(y, w) -> (y, go w))
+            (\ ~(y, w) -> (y, go w))
             <$> trans x (stepWire w' (f x))
 
 
@@ -99,7 +99,7 @@ manage
     => f (Wire m a b)
     -> Wire m (a, Event (Switch f m a b)) (f b)
 manage ws' =
-    Wire $ \(x, mf) ->
+    Wire $ \ ~(x, mf) ->
         (\ys -> (fst <$> ys,
                  manage (event id (\(Switch f) -> f id) mf (snd <$> ys))))
         <$> traverse (`stepWire` x) ws'
@@ -114,7 +114,7 @@ manage'
     => f (Wire m a b)
     -> Wire m (a, Event (Switch f m a b)) (f b)
 manage' ws' =
-    Wire $ \(x, mf) ->
+    Wire $ \ ~(x, mf) ->
         (\ys -> (fst <$> ys,
                  manage' (snd <$> ys)))
         <$> traverse (`stepWire` x) (event id (\(Switch f) -> f id) mf ws')
@@ -143,7 +143,7 @@ sequenceW ws' =
 switch :: (Functor m) => Wire m a (b, Event (Wire m a b)) -> Wire m a b
 switch w' =
     Wire $ \x ->
-        (\((y, mw), w) -> (y, event (switch w) id mw))
+        (\ ~(~(y, mw), w) -> (y, event (switch w) id mw))
         <$> stepWire w' x
 
 
@@ -153,7 +153,7 @@ switch w' =
 switch' :: (Monad m) => Wire m a (b, Event (Wire m a b)) -> Wire m a b
 switch' w' =
     Wire $ \x -> do
-        ((y, mw), w) <- stepWire w' x
+        ~(~(y, mw), w) <- stepWire w' x
         case mw of
           NotNow -> pure (y, switch' w)
           Now nw -> stepWire nw x

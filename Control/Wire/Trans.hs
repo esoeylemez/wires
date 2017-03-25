@@ -1,5 +1,5 @@
 -- |
--- Copyright:  (c) 2016 Ertugrul Söylemez
+-- Copyright:  (c) 2017 Ertugrul Söylemez
 -- License:    BSD3
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 
@@ -33,4 +33,4 @@ askW = lmap (\_ -> ask) animate
 -- | Embed the given 'ReaderT'-transformed monad.
 
 runReaderW :: (Functor m) => Wire (ReaderT e m) a b -> Wire m (e, a) b
-runReaderW = hoistW snd (\(env, _) c -> runReaderT c env)
+runReaderW = hoistW snd (\x c -> runReaderT c (fst x))

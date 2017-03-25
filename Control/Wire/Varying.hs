@@ -1,5 +1,5 @@
 -- |
--- Copyright:  (c) 2016 Ertugrul Söylemez
+-- Copyright:  (c) 2017 Ertugrul Söylemez
 -- License:    BSD3
 -- Maintainer: Ertugrul Söylemez <esz@posteo.de>
 -- Stability:  experimental
@@ -79,7 +79,7 @@ instance (IsString a) => IsString (Varying a) where
     fromString = pure . fromString
 
 instance Monad Varying where
-    Varying cx x >>= f =
+    ~(Varying cx x) >>= f =
         let Varying cy y = f x
         in Varying (cx || cy) y
 
@@ -98,7 +98,7 @@ instance (Num a) => Num (Varying a) where
 
 animateV :: (Applicative m) => (a -> m b) -> Wire m (Varying a) (Varying b)
 animateV f =
-    Wire $ \(Varying cx x) -> do
+    Wire $ \ ~(Varying cx x) -> do
         (\y -> (Varying cx y, go y))
         <$> f x
 
