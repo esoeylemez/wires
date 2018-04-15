@@ -3,8 +3,10 @@
 }:
 mkDerivation {
   pname = "wires";
-  version = "0.2.0";
+  version = "0.2.1";
   src = ./.;
+  isLibrary = true;
+  isExecutable = true;
   libraryHaskellDepends = [
     base deepseq mtl profunctors semigroupoids these
   ];
